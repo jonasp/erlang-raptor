@@ -8,7 +8,7 @@ This software is at a very early alpha stage. So far only very few features of t
 ## build
 ### Linux
 1. install libraptor2
-2. compile library ``gcc -o raptor_drv.so -fpic -shared `pkg-config raptor2 --cflags --libs` port_driver.c``
+2. compile library ``gcc -o raptor_drv.so -fpic -shared `pkg-config raptor2 --cflags --libs` raptor_drv.c``
 
 ### OS X
 1. install raptor2 with homebrew
@@ -18,7 +18,7 @@ This software is at a very early alpha stage. So far only very few features of t
 ```
 gcc -o raptor_drv.so -undefined dynamic_lookup -fpic -shared
 -I/usr/local/Cellar/erlang/R15B03-1/lib/erlang/usr/include
-`pkg-config raptor2 --cflags --libs` port_driver.c
+`pkg-config raptor2 --cflags --libs` raptor_drv.c
 ```
 
 ## usage

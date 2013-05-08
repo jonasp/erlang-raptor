@@ -1,4 +1,4 @@
-/* port_driver.c */
+/* raptor_drv.c */
 
 #include <raptor.h>
 #include <stdio.h>
