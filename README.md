@@ -2,11 +2,15 @@
 Erlang bindings for the Raptor RDF Parser Library
 http://librdf.org/raptor/
 
-## Linux
+## warning
+This software is at a very early alpha stage. So far only very few features of the raptor library are implemented. There is also no error handling so far.
+
+## build
+### Linux
 1. install libraptor2
 2. compile library ``gcc -o raptor_drv.so -fpic -shared `pkg-config raptor2 --cflags --libs` port_driver.c``
 
-## OS X
+### OS X
 1. install raptor2 with homebrew
 2. if `pkg-config raptor2 --libs` gives a libcurl.pc error export PKG_CONFIG_PATH with homebrew pkgconfig environment `/usr/local/Library/ENV/pkgconfig/10.8`
 3. compile library 
