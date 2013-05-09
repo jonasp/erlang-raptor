@@ -83,18 +83,16 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 		ErlDrvSizeT bufflen)
 {
 	example_data* d = (example_data*)handle;
+	driver_mk_port(d->port);
 	char fn = buff[0], res;
 	fprintf(stderr, "call: %d\n\r", fn);
 	if (fn == 1) {
 
 		
 	} else if (fn = 2) {
-		char arg[bufflen-1];
-		strcpy(arg,buff+1);
-		
 		raptor_parser* rdf_parser = raptor_new_parser(d->world, "turtle");
 		raptor_parser_set_statement_handler(rdf_parser, handle, statement_handler);
-		raptor_uri* uri = raptor_new_uri(d->world, arg);
+		raptor_uri* uri = raptor_new_uri(d->world, buff+1);
 		raptor_uri* base_uri = raptor_uri_copy(uri);
 
 		raptor_parser_parse_uri(rdf_parser, uri, base_uri);
