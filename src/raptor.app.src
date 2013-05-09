@@ -1,0 +1,12 @@
+{application, raptor,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { raptor_app, []}},
+  {env, []}
+ ]}.
