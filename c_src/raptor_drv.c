@@ -53,22 +53,22 @@ static void statement_handler(void *user_data, raptor_statement *statement)
 
 	ErlDrvPort drvport = d->port;
 	ErlDrvTermData spec[] = {
-			ERL_DRV_ATOM, driver_mk_atom("subject"),
-				ERL_DRV_ATOM, term_type(statement->subject),
-				ERL_DRV_STRING, (ErlDrvTermData)s, slen,
+				ERL_DRV_ATOM, driver_mk_atom("subject"),
+					ERL_DRV_ATOM, term_type(statement->subject),
+					ERL_DRV_STRING, (ErlDrvTermData)s, slen,
+				ERL_DRV_TUPLE, 2,
 			ERL_DRV_TUPLE, 2,
-		ERL_DRV_TUPLE, 2,
-			ERL_DRV_ATOM, driver_mk_atom("predicate"),
-				ERL_DRV_ATOM, term_type(statement->predicate),
-				ERL_DRV_STRING, (ErlDrvTermData)p, plen,
+				ERL_DRV_ATOM, driver_mk_atom("predicate"),
+					ERL_DRV_ATOM, term_type(statement->predicate),
+					ERL_DRV_STRING, (ErlDrvTermData)p, plen,
+				ERL_DRV_TUPLE, 2,
 			ERL_DRV_TUPLE, 2,
-		ERL_DRV_TUPLE, 2,
-			ERL_DRV_ATOM, driver_mk_atom("object"),
-				ERL_DRV_ATOM, term_type(statement->object),
-				ERL_DRV_STRING, (ErlDrvTermData)o, olen,
+				ERL_DRV_ATOM, driver_mk_atom("object"),
+					ERL_DRV_ATOM, term_type(statement->object),
+					ERL_DRV_STRING, (ErlDrvTermData)o, olen,
+				ERL_DRV_TUPLE, 2,
 			ERL_DRV_TUPLE, 2,
-		ERL_DRV_TUPLE, 2,
-		ERL_DRV_LIST, 3
+		ERL_DRV_TUPLE, 3
 	};
 	/* depend on deprecated call because homebrew is still on R15 */
 	/*erl_drv_output_term(driver_mk_port(drvport), spec, sizeof(spec) / sizeof(spec[0]));*/
