@@ -89,7 +89,7 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 	if (fn == 1) {
 
 		
-	} else if (fn = 2) {
+	} else if (fn == 2) {
 		raptor_parser* rdf_parser = raptor_new_parser(d->world, "turtle");
 		raptor_parser_set_statement_handler(rdf_parser, handle, statement_handler);
 		raptor_uri* uri = raptor_new_uri(d->world, buff+1);
