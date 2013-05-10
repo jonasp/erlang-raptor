@@ -1,6 +1,6 @@
 {application, raptor,
  [
-  {description, ""},
+  {description, "Bindings for the Raptor RDF Parser Library"},
   {vsn, "1"},
   {registered, []},
   {applications, [

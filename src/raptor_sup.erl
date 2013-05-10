@@ -1,4 +1,3 @@
-
 -module(raptor_sup).
 
 -behaviour(supervisor).
@@ -17,12 +16,19 @@
 %% ===================================================================
 
 start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+    supervisor:start_link({local, ?MODULE}, ?MODULE, [raptor]).
 
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
 
-init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+init([Id]) ->
+    {ok, { {one_for_one, 5, 10}, [{
+					Id,
+					{raptor, start_link, [Id]},
+					permanent,
+					2000,
+					worker,
+					[Id]
+				}]} }.
 
