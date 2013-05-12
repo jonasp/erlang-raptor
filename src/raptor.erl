@@ -1,64 +1,111 @@
 -module(raptor).
--export([start/0, stop/0, init/1]).
+
+-behaviour(gen_server).
+
+%% gen_server interface
+-export([start_link/1, start/1]).
+
+%% gen_server callbacks
+-export ([init/1,
+	      handle_call/3,
+	      handle_cast/2,
+	      handle_info/2,
+	      code_change/3,
+	      terminate/2]).
+
+%% API functions
 -export([parse_uri/1, test/0]).
 
+%% server state
+-record(state, {port}).
+
+%% ===================================================================
+%% gen_server interface 
+%% ===================================================================
+start_link(SharedLib) ->
+	gen_server:start_link({local, ?MODULE}, ?MODULE, SharedLib, []).
+
 start(SharedLib) ->
-    case erl_ddll:load_driver(".", SharedLib) of
-	ok -> ok;
-	{error, already_loaded} -> ok;
-	_ -> exit({error, could_not_load_driver})
-    end,
-    spawn(?MODULE, init, [SharedLib]).
+	gen_server:start({local, ?MODULE}, ?MODULE, SharedLib, []).
 
-start() ->
-	start("raptor_drv"),
-	ok.
-
+%% ===================================================================
+%% gen_server callbacks
+%% ===================================================================
 init(SharedLib) ->
-    register(raptor, self()),
-    Port = open_port({spawn, SharedLib}, []),
-    loop(Port).
-
-stop() ->
-    raptor ! stop.
-
-test() ->
-	call_port({test}).
-parse_uri(Uri) ->
-	call_port({parse_uri,Uri}).
-
-call_port(Msg) ->
-    raptor ! {call, self(), Msg},
-    receive
-	{raptor, Result} ->
-	    Result
-    end.
-
-loop(Port) ->
-	receive
-	{call, Caller, Msg} ->
-	    Port ! {self(), {command, encode(Msg)}},
-		result([], Caller),
-	    loop(Port);
-	stop ->
-	    Port ! {self(), close},
-	    receive
-		{Port, closed} ->
-		    exit(normal)
-	    end;
-	{'EXIT', Port, Reason} ->
-	    io:format("~p ~n", [Reason]),
-	    exit(port_terminated)
-    end.
-
-result(Statements, Caller) ->
-	receive
-		ok ->
-			Caller ! {raptor, lists:reverse(Statements)};
-		Data ->
-			result([Data|Statements],Caller)
+	case load_driver(SharedLib) of
+		{ok, Port}   -> {ok, #state{port = Port}};
+		{error, Msg} -> {stop, Msg};
+		_            -> {stop, failed_to_load_driver}
 	end.
 
+load_driver(SharedLib) ->
+	Result = case erl_ddll:load_driver("../priv", SharedLib) of
+		ok -> ok;
+		{error, already_loaded} -> ok;
+		{error, ErrorDesc} -> {error, erl_ddll:format_error(ErrorDesc)}
+	end,
+	case Result of
+		ok ->
+			process_flag(trap_exit,true),
+			case open_port({spawn, SharedLib},[]) of
+				P when is_port(P) -> {ok, P};
+				Error -> {error, Error}
+			end;
+		{error, Reason} -> {error, Reason}
+	end.
+
+handle_cast(_Msg, State) ->
+	{noreply, State}.
+
+%% code_change not working, implementing stub
+code_change(_OldVsn, State, _Extra) ->
+	{ok, State}.
+
+handle_info({'EXIT', _Port, Reason}, State) ->
+	{stop, {port_terminated, Reason}, State};
+handle_info(_Info, State) ->
+	{noreply, State}.
+
+terminate({port_terminated, _Reason}, _State) ->
+	ok;
+terminate(_Reason, #state{port = Port} = _State) ->
+	port_close(Port).
+
+handle_call(Msg, _From, #state{port = Port} = State) ->
+	port_command(Port, encode(Msg)),
+	case collect_response() of
+		{response, Response} ->
+			{reply, Response, State};
+		timeout ->
+			{stop, port_timeout, State}
+	end.
+
+collect_response() ->
+	collect_response([]).
+
+collect_response(Acc) ->
+	receive
+		ok ->
+			{response, lists:reverse(Acc)};
+		Data ->
+			collect_response([Data|Acc])
+	end.
+
+%% ===================================================================
+%% API functions
+%% ===================================================================
+test() ->
+	call_server({test}).
+
+parse_uri(Uri) ->
+	call_server({parse_uri,Uri}).
+
+call_server(Msg) ->
+	gen_server:call(?MODULE, Msg, get_timeout()).
+
+get_timeout() ->
+	{ok, Value} = application:get_env(raptor, timeout),
+	Value.
 
 encode({test}) -> [1];
 encode({parse_uri,Uri}) -> [2,Uri].

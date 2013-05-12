@@ -3,7 +3,7 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0]).
+-export([start_link/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -15,20 +15,20 @@
 %% API functions
 %% ===================================================================
 
-start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, [raptor]).
+start_link(SharedLib) ->
+    supervisor:start_link({local, ?MODULE}, ?MODULE, SharedLib).
 
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
 
-init([Id]) ->
+init(SharedLib) ->
     {ok, { {one_for_one, 5, 10}, [{
-					Id,
-					{raptor, start_link, [Id]},
+					raptor,
+					{raptor, start_link, [SharedLib]},
 					permanent,
 					2000,
 					worker,
-					[Id]
+					[raptor]
 				}]} }.
 

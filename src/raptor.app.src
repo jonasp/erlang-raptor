@@ -8,5 +8,5 @@
                   stdlib
                  ]},
   {mod, { raptor_app, []}},
-  {env, []}
+  {env, [{driver, "raptor_drv"}, {timeout, 3000}]}
  ]}.
