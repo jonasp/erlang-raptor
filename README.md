@@ -6,7 +6,7 @@ http://librdf.org/raptor/
 This software is at a very early alpha stage. So far only very few features of the raptor library are implemented. There is also no error handling so far.
 
 ## build
-1. install raptor2 with homebrew
+1. install raptor2
 2. (OS X) if `pkg-config raptor2 --libs` gives a libcurl.pc error export PKG_CONFIG_PATH with homebrew pkgconfig environment `/usr/local/Library/ENV/pkgconfig/10.8`
 3. compile library ``./rebar compile``
 
