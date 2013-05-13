@@ -2,6 +2,7 @@
 
 #include <raptor.h>
 #include <stdio.h>
+#include <string.h>
 #include "erl_driver.h"
 
 typedef struct {
@@ -90,9 +91,17 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 
 		
 	} else if (fn == 2) {
+		char* buffUri = NULL;
+		if ((buffUri = malloc(bufflen)) == NULL) {
+			// TODO: handle driver error
+		}
+		strncpy(buffUri, buff+1, bufflen-1);
+		buffUri[bufflen-1] = '\0';
+		fprintf(stderr, "uri: %s\n\r", buffUri);
+
 		raptor_parser* rdf_parser = raptor_new_parser(d->world, "turtle");
 		raptor_parser_set_statement_handler(rdf_parser, handle, statement_handler);
-		raptor_uri* uri = raptor_new_uri(d->world, (unsigned char*)buff+1);
+		raptor_uri* uri = raptor_new_uri(d->world, (unsigned char*)buffUri);
 		raptor_uri* base_uri = raptor_uri_copy(uri);
 
 		raptor_parser_parse_uri(rdf_parser, uri, base_uri);
@@ -117,6 +126,9 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 		raptor_free_parser(rdf_parser);
 		raptor_free_uri(base_uri);
 		raptor_free_uri(uri);
+
+		free(buffUri);
+		buffUri = NULL;
 	}
 }
 
