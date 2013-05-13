@@ -17,7 +17,7 @@ application:start(raptor).
 application:stop(raptor).
 ```
 
-parsing_uri:
+parsing URIs
 ```erlang
 raptor:parse_uri(Uri, Format).
 raptor:parse_uri(Uri) -> raptor:parse_uri(Uri, default)
