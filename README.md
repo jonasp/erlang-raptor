@@ -11,10 +11,29 @@ This software is at a very early alpha stage. So far only very few features of t
 3. compile library ``./rebar compile``
 
 ## usage
+start and stop application as usual
 ```erlang
 application:start(raptor).
-raptor:parse_uri("http://example.com").
 application:stop(raptor).
+```
+
+parsing_uri:
+```erlang
+raptor:parse_uri(Uri, Format).
+raptor:parse_uri(Uri) -> raptor:parse_uri(Uri, default)
+```
+where Format can be
+```erlang
+default      % default (RDF/XML) 
+rdfxml       % RDF/XML (default)
+ntriples     % N-Triples
+turtle       % Turtle Terse RDF Triple Language
+trig         % TriG - Turtle with Named Graphs
+rss_tag_soup % RSS Tag Soup
+grddl        % Gleaning Resource Descriptions from Dialects of Languages
+guess        % Pick the parser to use using content type and URI
+rdfa         % RDF/A via librdfa
+nquads       % N-Quadsd
 ```
 
 ## License
