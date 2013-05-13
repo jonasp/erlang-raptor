@@ -14,7 +14,7 @@
 	      terminate/2]).
 
 %% API functions
--export([parse_uri/1, test/0]).
+-export([parse_uri/1, parse_uri/2, test/0]).
 
 %% server state
 -record(state, {port}).
@@ -100,6 +100,9 @@ test() ->
 parse_uri(Uri) ->
 	call_server({parse_uri,Uri}).
 
+parse_uri(Uri,Format) ->
+	call_server({parse_uri, Uri, Format}).
+
 call_server(Msg) ->
 	gen_server:call(?MODULE, Msg, get_timeout()).
 
@@ -108,4 +111,19 @@ get_timeout() ->
 	Value.
 
 encode({test}) -> [1];
-encode({parse_uri,Uri}) -> [2,Uri].
+encode({parse_uri, Uri}) -> encode({parse_uri, Uri, default});
+encode({parse_uri, Uri, Format}) -> [2,encode_format(Format),Uri].
+
+encode_format(In) ->
+	case In of
+		default      -> 0; % default (RDF/XML) 
+		rdfxml       -> 1; % RDF/XML (default)
+		ntriples     -> 2; % N-Triples
+		turtle       -> 3; % Turtle Terse RDF Triple Language
+		trig         -> 4; % TriG - Turtle with Named Graphs
+		rss_tag_soup -> 5; % RSS Tag Soup
+		grddl        -> 6; % Gleaning Resource Descriptions from Dialects of Languages
+		guess        -> 7; % Pick the parser to use using content type and URI
+		rdfa         -> 8; % RDF/A via librdfa
+		nquads       -> 9 % N-Quadsd
+	end.

@@ -80,6 +80,24 @@ static void statement_handler(void *user_data, raptor_statement *statement)
 	raptor_free_memory((void*)o);
 }
 
+static char* decode_parser_name(char id)
+{
+	switch (id) {
+		case 0: return NULL; break;
+		case 1: return "rdfxml"; break;
+		case 2: return "ntriples"; break;
+		case 3: return "turtle"; break;
+		case 4: return "trig"; break;
+		case 5: return "rss-tag-soup"; break;
+		case 6: return "grddl"; break;
+		case 7: return "guess"; break;
+		case 8: return "rdfa"; break;
+		case 9: return "nquads"; break;
+	}
+	// TODO: Error handling
+	return "";
+}
+
 static void raptor_drv_output(ErlDrvData handle, char *buff, 
 		ErlDrvSizeT bufflen)
 {
@@ -91,15 +109,18 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 
 		
 	} else if (fn == 2) {
+		char* parserName = decode_parser_name(buff[1]);
+		fprintf(stderr, "format: %s\n\r", parserName);
+
 		char* buffUri = NULL;
-		if ((buffUri = malloc(bufflen)) == NULL) {
+		if ((buffUri = malloc(bufflen-1)) == NULL) {
 			// TODO: handle driver error
 		}
-		strncpy(buffUri, buff+1, bufflen-1);
-		buffUri[bufflen-1] = '\0';
+		strncpy(buffUri, buff+2, bufflen-2);
+		buffUri[bufflen-2] = '\0';
 		fprintf(stderr, "uri: %s\n\r", buffUri);
 
-		raptor_parser* rdf_parser = raptor_new_parser(d->world, "turtle");
+		raptor_parser* rdf_parser = raptor_new_parser(d->world, parserName);
 		raptor_parser_set_statement_handler(rdf_parser, handle, statement_handler);
 		raptor_uri* uri = raptor_new_uri(d->world, (unsigned char*)buffUri);
 
