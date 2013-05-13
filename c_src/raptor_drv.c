@@ -102,9 +102,8 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 		raptor_parser* rdf_parser = raptor_new_parser(d->world, "turtle");
 		raptor_parser_set_statement_handler(rdf_parser, handle, statement_handler);
 		raptor_uri* uri = raptor_new_uri(d->world, (unsigned char*)buffUri);
-		raptor_uri* base_uri = raptor_uri_copy(uri);
 
-		raptor_parser_parse_uri(rdf_parser, uri, base_uri);
+		raptor_parser_parse_uri(rdf_parser, uri, NULL);
 
 		ErlDrvTermData spec[] = {
 			/*ERL_DRV_ATOM, driver_mk_atom("tcp"),*/
@@ -124,7 +123,6 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 		/*erl_drv_output_term(driver_mk_port(drvport), spec, sizeof(spec) / sizeof(spec[0]));*/
 
 		raptor_free_parser(rdf_parser);
-		raptor_free_uri(base_uri);
 		raptor_free_uri(uri);
 
 		free(buffUri);
