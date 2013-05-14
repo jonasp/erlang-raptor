@@ -74,6 +74,8 @@ terminate(_Reason, #state{port = Port} = _State) ->
 handle_call(Msg, _From, #state{port = Port} = State) ->
 	port_command(Port, encode(Msg)),
 	case collect_response() of
+		{error, Reason} ->
+			{stop, Reason, State};
 		{response, Response} ->
 			{reply, Response, State};
 		timeout ->
@@ -85,6 +87,8 @@ collect_response() ->
 
 collect_response(Acc) ->
 	receive
+		{error, Reason}->
+			{error, Reason};
 		ok ->
 			{response, lists:reverse(Acc)};
 		Data ->

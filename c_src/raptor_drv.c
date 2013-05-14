@@ -124,24 +124,37 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 		raptor_parser_set_statement_handler(rdf_parser, handle, statement_handler);
 		raptor_uri* uri = raptor_new_uri(d->world, (unsigned char*)buffUri);
 
-		raptor_parser_parse_uri(rdf_parser, uri, NULL);
+		int result = raptor_parser_parse_uri(rdf_parser, uri, NULL);
 
-		ErlDrvTermData spec[] = {
-			/*ERL_DRV_ATOM, driver_mk_atom("tcp"),*/
-			/*ERL_DRV_PORT, driver_mk_port(drvport),*/
-			/*ERL_DRV_INT, 100,*/
-			/*ERL_DRV_ATOM, driver_mk_atom("length"),*/
-			/*ERL_DRV_LIST, 2,*/
-			/*ERL_DRV_TUPLE, 3,*/
-			/*ERL_DRV_STRING, (ErlDrvTermData)buff, bufflen,*/
-			/*ERL_DRV_ATOM, driver_mk_atom("data"),*/
-			/*ERL_DRV_LIST, 1*/
-			ERL_DRV_ATOM, driver_mk_atom("ok"),
-		};
+		if (result == 0) {
 
-		driver_output_term(d->port, spec, sizeof(spec) / sizeof(spec[0]));
-		/* depend on deprecated call because homebrew is still on R15 */
-		/*erl_drv_output_term(driver_mk_port(drvport), spec, sizeof(spec) / sizeof(spec[0]));*/
+			ErlDrvTermData spec[] = {
+				/*ERL_DRV_ATOM, driver_mk_atom("tcp"),*/
+				/*ERL_DRV_PORT, driver_mk_port(drvport),*/
+				/*ERL_DRV_INT, 100,*/
+				/*ERL_DRV_ATOM, driver_mk_atom("length"),*/
+				/*ERL_DRV_LIST, 2,*/
+				/*ERL_DRV_TUPLE, 3,*/
+				/*ERL_DRV_STRING, (ErlDrvTermData)buff, bufflen,*/
+				/*ERL_DRV_ATOM, driver_mk_atom("data"),*/
+				/*ERL_DRV_LIST, 1*/
+				ERL_DRV_ATOM, driver_mk_atom("ok")
+			};
+			driver_output_term(d->port, spec, sizeof(spec) / sizeof(spec[0]));
+			/* depend on deprecated call because homebrew is still on R15 */
+			/*erl_drv_output_term(driver_mk_port(drvport), spec, sizeof(spec) / sizeof(spec[0]));*/
+		} else {
+			fprintf(stderr, "result: %d\n\r", result);
+			ErlDrvTermData spec[] = {
+					ERL_DRV_ATOM, driver_mk_atom("error"),
+					ERL_DRV_INT, result,
+				ERL_DRV_TUPLE, 2
+			};
+			driver_output_term(d->port, spec, sizeof(spec) / sizeof(spec[0]));
+			/* depend on deprecated call because homebrew is still on R15 */
+			/*erl_drv_output_term(driver_mk_port(drvport), spec, sizeof(spec) / sizeof(spec[0]));*/
+		}
+
 
 		raptor_free_parser(rdf_parser);
 		raptor_free_uri(uri);
