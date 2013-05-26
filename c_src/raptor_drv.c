@@ -12,6 +12,17 @@ typedef struct {
 	ErlDrvMutex* mutex;
 } driver_data;
 
+static void message_handler(void *user_data, raptor_log_message *message)
+{
+	fprintf(stderr, "error code: %d\n\r", message->code);
+	fprintf(stderr, "domain: %s\n\r", raptor_domain_get_label(message->domain));
+	fprintf(stderr, "log level: %s\n\r", raptor_log_level_get_label(message->level));
+	fprintf(stderr, "locator: \n", NULL);
+	raptor_locator_print(message->locator,stderr);
+	fprintf(stderr, "\n\r", NULL);
+	fprintf(stderr, "message: %s\n\r", message->text);
+}
+
 static ErlDrvData raptor_drv_start(ErlDrvPort port, char *buff)
 {
     driver_data* d = (driver_data*)driver_alloc(sizeof(driver_data));
@@ -19,6 +30,7 @@ static ErlDrvData raptor_drv_start(ErlDrvPort port, char *buff)
     d->port_term = driver_mk_port(port);
 	d->world = raptor_new_world();
 	d->mutex= erl_drv_mutex_create("raptor_lock");
+	raptor_world_set_log_handler(d->world, d, message_handler);
     return (ErlDrvData)d;
 }
 
