@@ -6,21 +6,26 @@
 #include "erl_driver.h"
 
 typedef struct {
-    ErlDrvPort port;
 	raptor_world* world;
+    ErlDrvPort port;
+    ErlDrvTermData port_term;
+	ErlDrvMutex* mutex;
 } driver_data;
 
 static ErlDrvData raptor_drv_start(ErlDrvPort port, char *buff)
 {
     driver_data* d = (driver_data*)driver_alloc(sizeof(driver_data));
     d->port = port;
+    d->port_term = driver_mk_port(port);
 	d->world = raptor_new_world();
+	d->mutex= erl_drv_mutex_create("raptor_lock");
     return (ErlDrvData)d;
 }
 
 static void raptor_drv_stop(ErlDrvData handle)
 {
 	driver_data* d = (driver_data*)handle;
+	erl_drv_mutex_destroy(d->mutex);
 	raptor_free_world(d->world);
     driver_free((char*)handle);
 }
@@ -43,6 +48,18 @@ static ErlDrvTermData term_type(raptor_term* term) {
 	return -1;
 }
 
+static int send_data(driver_data *d, ErlDrvTermData *data, int len)
+{
+	erl_drv_mutex_lock(d->mutex);
+#ifdef ERLANG_R16_SUPPORT
+	int result = erl_drv_output_term(d->port_term, data, len);
+#else
+	int result = driver_output_term(d->port, data, len);
+#endif
+	erl_drv_mutex_unlock(d->mutex);
+	return result;
+}
+
 static void statement_handler(void *user_data, raptor_statement *statement)
 {
 	driver_data* d = (driver_data*)user_data;
@@ -52,7 +69,6 @@ static void statement_handler(void *user_data, raptor_statement *statement)
 	const char *p = (const char*)raptor_term_to_counted_string(statement->predicate, &plen);
 	const char *o = (const char*)raptor_term_to_counted_string(statement->object, &olen);
 
-	ErlDrvPort drvport = d->port;
 	ErlDrvTermData spec[] = {
 				ERL_DRV_ATOM, driver_mk_atom("subject"),
 					ERL_DRV_ATOM, term_type(statement->subject),
@@ -71,9 +87,7 @@ static void statement_handler(void *user_data, raptor_statement *statement)
 			ERL_DRV_TUPLE, 2,
 		ERL_DRV_TUPLE, 3
 	};
-	/* depend on deprecated call because homebrew is still on R15 */
-	/*erl_drv_output_term(driver_mk_port(drvport), spec, sizeof(spec) / sizeof(spec[0]));*/
-	driver_output_term(drvport, spec, sizeof(spec) / sizeof(spec[0]));
+	send_data(d, spec, sizeof(spec) / sizeof(spec[0]));
 
 	raptor_free_memory((void*)s);
 	raptor_free_memory((void*)p);
@@ -140,9 +154,7 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 				/*ERL_DRV_LIST, 1*/
 				ERL_DRV_ATOM, driver_mk_atom("ok")
 			};
-			driver_output_term(d->port, spec, sizeof(spec) / sizeof(spec[0]));
-			/* depend on deprecated call because homebrew is still on R15 */
-			/*erl_drv_output_term(driver_mk_port(drvport), spec, sizeof(spec) / sizeof(spec[0]));*/
+			send_data(d, spec, sizeof(spec) / sizeof(spec[0]));
 		} else {
 			fprintf(stderr, "result: %d\n\r", result);
 			ErlDrvTermData spec[] = {
@@ -150,9 +162,7 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 					ERL_DRV_INT, result,
 				ERL_DRV_TUPLE, 2
 			};
-			driver_output_term(d->port, spec, sizeof(spec) / sizeof(spec[0]));
-			/* depend on deprecated call because homebrew is still on R15 */
-			/*erl_drv_output_term(driver_mk_port(drvport), spec, sizeof(spec) / sizeof(spec[0]));*/
+			send_data(d, spec, sizeof(spec) / sizeof(spec[0]));
 		}
 
 
