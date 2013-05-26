@@ -8,11 +8,11 @@
 typedef struct {
     ErlDrvPort port;
 	raptor_world* world;
-} example_data;
+} driver_data;
 
 static ErlDrvData raptor_drv_start(ErlDrvPort port, char *buff)
 {
-    example_data* d = (example_data*)driver_alloc(sizeof(example_data));
+    driver_data* d = (driver_data*)driver_alloc(sizeof(driver_data));
     d->port = port;
 	d->world = raptor_new_world();
     return (ErlDrvData)d;
@@ -20,7 +20,7 @@ static ErlDrvData raptor_drv_start(ErlDrvPort port, char *buff)
 
 static void raptor_drv_stop(ErlDrvData handle)
 {
-	example_data* d = (example_data*)handle;
+	driver_data* d = (driver_data*)handle;
 	raptor_free_world(d->world);
     driver_free((char*)handle);
 }
@@ -45,7 +45,7 @@ static ErlDrvTermData term_type(raptor_term* term) {
 
 static void statement_handler(void *user_data, raptor_statement *statement)
 {
-	example_data* d = (example_data*)user_data;
+	driver_data* d = (driver_data*)user_data;
 
 	size_t slen, plen, olen;
 	const char *s = (const char*)raptor_term_to_counted_string(statement->subject, &slen);
@@ -101,7 +101,7 @@ static char* decode_parser_name(char id)
 static void raptor_drv_output(ErlDrvData handle, char *buff, 
 		ErlDrvSizeT bufflen)
 {
-	example_data* d = (example_data*)handle;
+	driver_data* d = (driver_data*)handle;
 	driver_mk_port(d->port);
 	char fn = buff[0];
 	fprintf(stderr, "call: %d\n\r", fn);
