@@ -121,7 +121,7 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 		fprintf(stderr, "uri: %s\n\r", buffUri);
 
 		raptor_parser* rdf_parser = raptor_new_parser(d->world, parserName);
-		raptor_parser_set_statement_handler(rdf_parser, handle, statement_handler);
+		raptor_parser_set_statement_handler(rdf_parser, d, statement_handler);
 		raptor_uri* uri = raptor_new_uri(d->world, (unsigned char*)buffUri);
 
 		int result = raptor_parser_parse_uri(rdf_parser, uri, NULL);
