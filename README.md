@@ -3,7 +3,7 @@ Erlang bindings for the Raptor RDF Parser Library
 http://librdf.org/raptor/
 
 ## warning
-This software is at a very early alpha stage. So far only very few features of the raptor library are implemented. There is also no error handling so far.
+This software is at a very early alpha stage. So far only very few features of the raptor library are implemented. There is only very basic error handling so far.
 
 ## build
 1. install raptor2
