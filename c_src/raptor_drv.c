@@ -155,13 +155,17 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 	driver_data* d = (driver_data*)handle;
 	driver_mk_port(d->port);
 	char fn = buff[0];
+#ifdef DEBUG
 	fprintf(stderr, "call: %d\n\r", fn);
+#endif
 	if (fn == 1) {
 
 		
 	} else if (fn == 2) {
 		char* parserName = decode_parser_name(buff[1]);
+#ifdef DEBUG
 		fprintf(stderr, "format: %s\n\r", parserName);
+#endif
 
 		char* buffUri = NULL;
 		if ((buffUri = malloc(bufflen-1)) == NULL) {
@@ -169,7 +173,9 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 		}
 		strncpy(buffUri, buff+2, bufflen-2);
 		buffUri[bufflen-2] = '\0';
+#ifdef DEBUG
 		fprintf(stderr, "uri: %s\n\r", buffUri);
+#endif
 
 		raptor_parser* rdf_parser = raptor_new_parser(d->world, parserName);
 		raptor_parser_set_statement_handler(rdf_parser, d, statement_handler);
@@ -193,7 +199,9 @@ static void raptor_drv_output(ErlDrvData handle, char *buff,
 			};
 			send_data(d, spec, sizeof(spec) / sizeof(spec[0]));
 		} else {
+#ifdef DEBUG
 			fprintf(stderr, "result: %d\n\r", result);
+#endif
 			ErlDrvTermData spec[] = {
 					ERL_DRV_ATOM, driver_mk_atom("error"),
 					ERL_DRV_INT, result,
