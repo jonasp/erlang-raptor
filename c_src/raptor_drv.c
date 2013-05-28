@@ -22,15 +22,42 @@ typedef struct {
 	ErlDrvMutex* mutex;
 } driver_data;
 
+static int send_data(driver_data *d, ErlDrvTermData *data, int len)
+{
+	erl_drv_mutex_lock(d->mutex);
+/*
+ * R16 deprecated driver_output and switched to er_drv_output_term.
+ * erl_drv_output_term is only thread safe when the emulator with
+ * SMP support is used. For safety we still lock.
+ */
+#if ((ERL_DRV_EXTENDED_MAJOR_VERSION == 2 && \
+      ERL_DRV_EXTENDED_MINOR_VERSION == 1) || \
+     ERL_DRV_EXTENDED_MAJOR_VERSION > 2)
+	int result = erl_drv_output_term(d->port_term, data, len);
+#else
+	int result = driver_output_term(d->port, data, len);
+#endif
+	erl_drv_mutex_unlock(d->mutex);
+	return result;
+}
+
 static void message_handler(void *user_data, raptor_log_message *message)
 {
-	fprintf(stderr, "error code: %d\n\r", message->code);
-	fprintf(stderr, "domain: %s\n\r", raptor_domain_get_label(message->domain));
-	fprintf(stderr, "log level: %s\n\r", raptor_log_level_get_label(message->level));
-	fprintf(stderr, "locator: \n", NULL);
-	raptor_locator_print(message->locator,stderr);
-	fprintf(stderr, "\n\r", NULL);
-	fprintf(stderr, "message: %s\n\r", message->text);
+	driver_data* d = (driver_data*)user_data;
+
+	ErlDrvTermData spec[] = {
+			ERL_DRV_ATOM, driver_mk_atom("error"),
+				ERL_DRV_INT, message->code,
+				ERL_DRV_ATOM, driver_mk_atom(
+						(char*)(raptor_domain_get_label(message->domain))),
+				ERL_DRV_ATOM, driver_mk_atom(
+						(char*)(raptor_log_level_get_label(message->level))),
+				// TODO: send message->locator info
+				ERL_DRV_STRING, (ErlDrvTermData)(message->text), strlen(message->text),
+			ERL_DRV_TUPLE, 4,
+		ERL_DRV_TUPLE, 2
+	};
+	send_data(d, spec, sizeof(spec) / sizeof(spec[0]));
 }
 
 static ErlDrvData raptor_drv_start(ErlDrvPort port, char *buff)
@@ -68,25 +95,6 @@ static ErlDrvTermData term_type(raptor_term* term) {
 		break;
 	}
 	return -1;
-}
-
-static int send_data(driver_data *d, ErlDrvTermData *data, int len)
-{
-	erl_drv_mutex_lock(d->mutex);
-/*
- * R16 deprecated driver_output and switched to er_drv_output_term.
- * erl_drv_output_term is only thread safe when the emulator with
- * SMP support is used. For safety we still lock.
- */
-#if ((ERL_DRV_EXTENDED_MAJOR_VERSION == 2 && \
-      ERL_DRV_EXTENDED_MINOR_VERSION == 1) || \
-     ERL_DRV_EXTENDED_MAJOR_VERSION > 2)
-	int result = erl_drv_output_term(d->port_term, data, len);
-#else
-	int result = driver_output_term(d->port, data, len);
-#endif
-	erl_drv_mutex_unlock(d->mutex);
-	return result;
 }
 
 static void statement_handler(void *user_data, raptor_statement *statement)
