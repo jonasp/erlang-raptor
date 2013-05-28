@@ -63,7 +63,10 @@ static ErlDrvTermData term_type(raptor_term* term) {
 static int send_data(driver_data *d, ErlDrvTermData *data, int len)
 {
 	erl_drv_mutex_lock(d->mutex);
-#ifdef ERLANG_R16_SUPPORT
+// check for R16
+#if ((ERL_DRV_EXTENDED_MAJOR_VERSION == 2 && \
+      ERL_DRV_EXTENDED_MINOR_VERSION == 1) || \
+     ERL_DRV_EXTENDED_MAJOR_VERSION > 2)
 	int result = erl_drv_output_term(d->port_term, data, len);
 #else
 	int result = driver_output_term(d->port, data, len);
