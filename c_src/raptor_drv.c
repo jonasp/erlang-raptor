@@ -5,6 +5,11 @@
 #include <string.h>
 #include "erl_driver.h"
 
+#if ERL_DRV_EXTENDED_MAJOR_VERSION < 2
+typedef int ErlDrvSizeT;
+typedef int ErlDrvSSizeT;
+#endif
+
 typedef struct {
 	raptor_world* world;
     ErlDrvPort port;
