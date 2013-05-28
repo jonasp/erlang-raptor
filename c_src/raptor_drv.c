@@ -5,6 +5,11 @@
 #include <string.h>
 #include "erl_driver.h"
 
+/*
+ * R15B changed several driver callbacks to use ErlDrvSizeT and
+ * ErlDrvSSizeT typedefs instead of int.
+ * This provides missing typedefs on older OTP versions.
+ */
 #if ERL_DRV_EXTENDED_MAJOR_VERSION < 2
 typedef int ErlDrvSizeT;
 typedef int ErlDrvSSizeT;
@@ -68,7 +73,11 @@ static ErlDrvTermData term_type(raptor_term* term) {
 static int send_data(driver_data *d, ErlDrvTermData *data, int len)
 {
 	erl_drv_mutex_lock(d->mutex);
-// check for R16
+/*
+ * R16 deprecated driver_output and switched to er_drv_output_term.
+ * erl_drv_output_term is only thread safe when the emulator with
+ * SMP support is used. For safety we still lock.
+ */
 #if ((ERL_DRV_EXTENDED_MAJOR_VERSION == 2 && \
       ERL_DRV_EXTENDED_MINOR_VERSION == 1) || \
      ERL_DRV_EXTENDED_MAJOR_VERSION > 2)
