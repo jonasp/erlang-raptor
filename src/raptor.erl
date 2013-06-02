@@ -39,7 +39,8 @@ init(SharedLib) ->
 	end.
 
 load_driver(SharedLib) ->
-	Result = case erl_ddll:load_driver("../priv", SharedLib) of
+	PrivDir = code:priv_dir(?MODULE),
+	Result = case erl_ddll:load_driver(PrivDir, SharedLib) of
 		ok -> ok;
 		{error, already_loaded} -> ok;
 		{error, ErrorDesc} -> {error, erl_ddll:format_error(ErrorDesc)}
